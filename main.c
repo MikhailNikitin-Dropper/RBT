@@ -38,12 +38,15 @@ int main()
     rb_insert(t, from_int(1));
     rb_print(t->root); printf("\n");
     rb_paint(t, pos);
+    rb_paint_select_insert(t->root->left);
     readkey();
     cleardevice();
 
     rb_insert(t, from_int(0));
     rb_print(t->root); printf("\n");
     rb_paint(t, pos);
+    readkey();
+    rb_min(t);
     readkey();
     cleardevice();
 
@@ -62,6 +65,8 @@ int main()
     rb_insert(t, from_int(6));
     rb_print(t->root); printf("\n");
     rb_paint(t, pos);
+    readkey();
+    rb_paint_min(t);
     readkey();
     cleardevice();
 

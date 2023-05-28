@@ -3,6 +3,25 @@
 #include <graphics.h>
 #include "RBT_back.h"
 #include <stdio.h>
+//Just tree drawing
+void rb_paint(rbt *t, place tree_pos);
+//Recursive painting tree and add cords to each node
 void rb_paint_req(rbnode *n, place pos, size_t beg, size_t end);
+//Select node
+void rb_paint_select(const rbnode *n, int color);
+//Select node an its parent
+void rb_paint_select_insert(const rbnode *n);
+//Arrow to the left
+void rb_select_rotate_l(const rbnode *n);
+//Arrow to the right
+void rb_select_rotate_r(const rbnode *n);
+//Double black
+void rb_paint_double_black(const rbnode *n);
+//Highlight path to min
+rbnode *rb_paint_min(rbt *t);
+//Highlight path to max
+rbnode *rb_paint_max(rbt *t);
+//Change node color on paint and select it
+void rb_select_repaint(const rbnode *n, int new_color);
 
 #endif // RBT_VISUAL_H_INCLUDED
