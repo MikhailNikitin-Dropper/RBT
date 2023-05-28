@@ -22,6 +22,11 @@ rbnode *rb_paint_min(rbt *t);
 //Highlight path to max
 rbnode *rb_paint_max(rbt *t);
 //Change node color on paint and select it
-void rb_select_repaint(const rbnode *n, int new_color);
-
+void rb_paint_select_repaint(const rbnode *n, int new_color);
+//Copy key from one node to another on paint and draw arrow from old to new, highlight new node
+void rb_paint_select_copy(const rbnode *n_old, const rbnode *n_new);
+//Print text left to node
+void rb_paint_stext_l(const rbnode *n, const char *str);
+//Print text right to node
+void rb_paint_text_r(const rbnode *n, const char *str);
 #endif // RBT_VISUAL_H_INCLUDED

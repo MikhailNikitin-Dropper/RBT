@@ -29,14 +29,14 @@ void rb_paint_req(rbnode *n, place pos, size_t beg, size_t end)
 
     if (n->color == RB_NIL)
     {
-        settextstyle(0, 0, 4);
+        settextstyle(0, 0, SIZE_Y/2);
         outtextxy(pos.x + SIZE_X/2, pos.y + SIZE_Y/2, "NIL");
     }
     else
     {
         char key[5];
         sprintf(key, "%d", n->key.data);
-        settextstyle(0, 0, 8);
+        settextstyle(0, 0, SIZE_Y/2);
         outtextxy(pos.x + SIZE_X/2, pos.y + SIZE_Y/2, key);
     }
 
@@ -152,11 +152,10 @@ rbnode *rb_paint_max(rbt *t)
     return x;
 }
 
-void rb_select_repaint(const rbnode *n, int new_color)
+void rb_paint_select_repaint(const rbnode *n, int new_color)
 {
     place pos = n->pos;
-    sprintf(key, "%d", n->key);
-    setcolor(LIGHTGREEN);
+    setcolor(GREEN);
     setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
     rectangle(pos.x, pos.y, pos.x + SIZE_X*2, pos.y + SIZE_Y*2);
     setfillstyle(SOLID_FILL, new_color);
@@ -165,10 +164,56 @@ void rb_select_repaint(const rbnode *n, int new_color)
     setcolor(LIGHTGRAY);
     char key[5];
     sprintf(key, "%d", n->key.data);
-    settextstyle(0, 0, 8);
+    settextstyle(0, 0, SIZE_Y/2);
     outtextxy(pos.x + SIZE_X/2, pos.y + SIZE_Y/2, key);
 }
 
+void rb_paint_select_copy(const rbnode *n_old, const rbnode *n_new)
+{
+    char key_old[5], key_new[5];
+    place old_pos = n_old->pos, new_pos = n_new->pos;
+
+    sprintf(key_old, "%d", n_old->key.data);
+    sprintf(key_new, "%d", n_new->key.data);
+
+    setcolor(YELLOW);
+    setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
+    line(old_pos.x+SIZE_X, old_pos.y+SIZE_Y, new_pos.x+SIZE_X, new_pos.y+SIZE_Y);
+
+    setcolor(GREEN);
+    setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
+    rectangle(new_pos.x, new_pos.y, new_pos.x + SIZE_X*2, new_pos.y + SIZE_Y*2);
+    setfillstyle(SOLID_FILL, n_old->color == RB_BLACK ? BLACK : LIGHTRED);
+    fillellipse(new_pos.x+SIZE_X, new_pos.y+SIZE_Y, SIZE_X, SIZE_Y);
+
+    setcolor(LIGHTGRAY);
+    setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
+    rectangle(old_pos.x, old_pos.y, old_pos.x + SIZE_X*2, old_pos.y + SIZE_Y*2);
+    setfillstyle(SOLID_FILL, n_new->color == RB_BLACK ? BLACK : LIGHTRED);
+    fillellipse(old_pos.x+SIZE_X, old_pos.y+SIZE_Y, SIZE_X, SIZE_Y);
+
+    setcolor(LIGHTGRAY);
+    settextstyle(0, 0, SIZE_Y/2);
+    outtextxy(new_pos.x + SIZE_X/2, new_pos.y + SIZE_Y/2, key_old);
+    outtextxy(old_pos.x + SIZE_X/2, old_pos.y + SIZE_Y/2, key_new);
+}
+
+void rb_paint_stext_l(const rbnode *n, const char *str)
+{
+    setcolor(BLACK);
+    settextstyle(0, 0, SIZE_Y/3);
+    setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
+    int width = textwidth(str);
+    outtextxy(n->pos.x - width - 1, n->pos.y, str);
+}
 
 
+void rb_paint_stext_r(const rbnode *n, const char *str)
+{
+    setcolor(BLACK);
+    settextstyle(0, 0, SIZE_Y/3);
+    setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
+    int width = textwidth(str);
+    outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y, str);
+}
 

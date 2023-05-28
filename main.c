@@ -21,11 +21,15 @@ int main()
     rb_print(t->root); printf("\n");
     rb_paint(t, pos);
     readkey();
+    rb_paint_stext_l(t->root, "Smth");
+    readkey();
     cleardevice();
 
     rb_insert(t, from_int(3));
     rb_print(t->root); printf("\n");
     rb_paint(t, pos);
+    readkey();
+    rb_paint_select_copy(t->root, t->root->right);
     readkey();
     cleardevice();
 
