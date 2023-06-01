@@ -31,6 +31,27 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Linker>
+			<Add option="-lopenbgi -lgdi32" />
+		</Linker>
+		<Unit filename="RBT_back.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="RBT_back.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="RBT_info.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="RBT_info.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="RBT_visual.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="RBT_visual.h">
+			<Option compile="1" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

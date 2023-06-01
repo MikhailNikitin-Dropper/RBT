@@ -13,23 +13,38 @@
 	<stdio.h>
 	"RBT_back.h"
 
-1685312230 source:c:\c\rbt_project\main.c
+1685625044 source:c:\c\rbt_project\main.c
 	<stdio.h>
 	<stdlib.h>
 	<graphics.h>
+	<malloc.h>
 	"RBT_info.h"
 	"RBT_back.h"
 	"RBT_visual.h"
 
-1685312078 c:\c\rbt_project\rbt_visual.h
+1685625776 c:\c\rbt_project\rbt_visual.h
 	<graphics.h>
 	"RBT_back.h"
 	<stdio.h>
 
-1685312130 source:c:\c\rbt_project\rbt_visual.c
+1685627095 source:c:\c\rbt_project\rbt_visual.c
 	"RBT_visual.h"
 	"RBT_back.h"
 	"RBT_info.h"
 	<string.h>
 	<math.h>
+	<malloc.h>
+	<stdio.h>
+	<stdlib.h>
+
+1685271302 source:c:\c\rbt_project\rbt_back.h
+
+1685271280 source:c:\c\rbt_project\rbt_info.h
+	<stdio.h>
+	"RBT_back.h"
+
+1685625776 source:c:\c\rbt_project\rbt_visual.h
+	<graphics.h>
+	"RBT_back.h"
+	<stdio.h>
 

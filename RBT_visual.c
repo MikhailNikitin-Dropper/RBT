@@ -3,9 +3,12 @@
 #include "RBT_info.h"
 #include <string.h>
 #include <math.h>
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
 #define SIZE_X 20
 #define SIZE_Y 20
-
+#define NULL ((void *)0)
  void rb_paint(rbt *t, place tree_pos)
 {
     size_t beg = 0, end = 0;
@@ -88,7 +91,7 @@ void rb_paint_select_insert(const rbnode *n)
     }
 }
 
-void rb_paint_rotate_l(rbnode *n)
+void rb_paint_select_rotate_l(const rbnode *n)
 {
     setcolor(LIGHTBLUE);
     setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
@@ -97,13 +100,14 @@ void rb_paint_rotate_l(rbnode *n)
     line(n->pos.x - SIZE_X, n->pos.y, n->pos.x - 2*SIZE_X, n->pos.y - SIZE_Y*0.5);
 }
 
-void rb_paint_rotate_r(rbnode *n)
+void rb_paint_select_rotate_r(const rbnode *n)
 {
     setcolor(LIGHTBLUE);
     setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
     ellipse(n->pos.x+SIZE_X, n->pos.y, 0, 180, SIZE_X*2, SIZE_Y);
     line(n->pos.x + 3*SIZE_X, n->pos.y, n->pos.x + 2*SIZE_X, n->pos.y - SIZE_Y*0.5);
     line(n->pos.x + 3*SIZE_X, n->pos.y, n->pos.x + 4*SIZE_X, n->pos.y - SIZE_Y*0.5);
+
 }
 
 void rb_select_double_black(rbnode *n)
@@ -116,6 +120,7 @@ void rb_select_double_black(rbnode *n)
     setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
     rectangle(n->pos.x -1, n->pos.y - 1, n->pos.x + 1 + 2*SIZE_X, n->pos.y + 1 + 2*SIZE_Y);
     rectangle(n->pos.x - 2, n->pos.y - 2, n->pos.x + 2 + 2*SIZE_X, n->pos.y + 2 + 2*SIZE_Y);
+
 }
 
 
@@ -166,6 +171,7 @@ void rb_paint_select_repaint(const rbnode *n, int new_color)
     sprintf(key, "%d", n->key.data);
     settextstyle(0, 0, SIZE_Y/2);
     outtextxy(pos.x + SIZE_X/2, pos.y + SIZE_Y/2, key);
+
 }
 
 void rb_paint_select_copy(const rbnode *n_old, const rbnode *n_new)
@@ -196,24 +202,280 @@ void rb_paint_select_copy(const rbnode *n_old, const rbnode *n_new)
     settextstyle(0, 0, SIZE_Y/2);
     outtextxy(new_pos.x + SIZE_X/2, new_pos.y + SIZE_Y/2, key_old);
     outtextxy(old_pos.x + SIZE_X/2, old_pos.y + SIZE_Y/2, key_new);
+
 }
 
-void rb_paint_stext_l(const rbnode *n, const char *str)
+void rb_paint_stext_l(const rbnode *n, const char *str1, const char *str2)
 {
     setcolor(BLACK);
     settextstyle(0, 0, SIZE_Y/3);
     setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
-    int width = textwidth(str);
-    outtextxy(n->pos.x - width - 1, n->pos.y, str);
+    int width1 = textwidth(str1);
+    int width2 = textwidth(str2);
+    if (str2)
+         outtextxy(n->pos.x - width2 - 1, n->pos.y+SIZE_Y+1, str2);
+    outtextxy(n->pos.x - width1 - 1, n->pos.y, str1);
+
 }
 
 
-void rb_paint_stext_r(const rbnode *n, const char *str)
+void rb_paint_stext_r(const rbnode *n, const char *str1, const char *str2)
 {
     setcolor(BLACK);
     settextstyle(0, 0, SIZE_Y/3);
     setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
-    int width = textwidth(str);
-    outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y, str);
+    if (str2)
+         outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y+SIZE_Y/3+1, str2);
+    outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y, str1);
+
 }
+
+rbnode *rb_paint_bst_insert(rbt *t, key_t key)
+{
+    rbnode *y = NULL, *x = t->root;
+    rbnode *z = malloc(sizeof(rbnode));
+
+    if (!z)
+        return NULL;
+
+    z->key = key;
+    z->color = RB_RED;
+    z->left = z->right = NULL;
+
+    while (x)
+    {
+        rb_paint_select_insert(x);
+        y = x;
+        if (z->key.data == x->key.data)
+        {
+            rb_paint_stext_r(x, "Element is already in tree", NULL);
+            free(z);
+            return NULL;
+        }
+        x = z->key.data < x->key.data ? x->left : x->right;
+    }
+
+    z->parent = y;
+
+    if (!y)
+        t->root = z;
+    else
+    {
+        if (z->key.data < y->key.data)
+            y->left = z;
+        else
+            y->right = z;
+    }
+
+    return z;
+}
+
+int rb_paint_insert(rbt *t, key_t key, place root_pos)
+{
+    rbnode *x = rb_paint_bst_insert(t, key);
+    if (!x)
+        return 1;
+
+    rb_paint(t, root_pos);
+
+    rb_paint_select(x, GREEN);
+    if (!(x->parent))
+    {
+        rb_paint_stext_l(x, "Root red - change to black", " ");
+        rb_paint_select_repaint(x, BLACK);
+        delay(1000);
+    }
+    else if (x->parent->color == RB_BLACK)
+        rb_paint_stext_l(x->parent, "Parent is black - all is good", " ");
+    while (x != t->root && x->parent->color == RB_RED)
+    {
+        if (x->parent == x->parent->parent->right)
+        {
+            rb_paint_stext_r(x->parent, "Parent is red -> analyze uncle", " ");
+            delay(1000);
+        }
+        else
+        {
+            rb_paint_stext_l(x->parent, "Parent is red -> analyze uncle", " ");
+            delay(1000);
+        }
+
+        rbnode *y = x->parent == x->parent->parent->left ? x->parent->parent->right : x->parent->parent->left; //y - uncle
+
+        if (y && y->color == RB_RED)
+        {
+            if (y == y->parent->right)
+            {
+                rb_paint_stext_r(y, "Red uncle - change parent and uncle to black",
+                           "grandfather to red; grandfather is curent");
+                delay(1000);
+            }
+            else
+            {
+                rb_paint_stext_l(y, "Red uncle - change parent and uncle to black",
+                           "grandfather to red; grandfather is curent");
+                delay(1000);
+            }
+
+            x->parent->color = RB_BLACK;
+
+            rb_paint_select_repaint(x, BLACK);
+            y->color = RB_BLACK;
+            rb_paint_select_repaint(y, BLACK);
+            x->parent->parent->color = RB_RED;
+            rb_paint_select_repaint(x->parent->parent, LIGHTRED);
+
+            delay(1000);
+
+            x = x->parent->parent;
+
+            rb_paint(t, root_pos);
+
+            rb_paint_select(x, GREEN);
+
+            if (!x->parent)
+            {
+                rb_paint_stext_l(x,
+                           "Black root -> repaint to black",
+                           NULL);
+                rb_paint_select_repaint(x, BLACK);
+                delay(1000);
+            }
+
+            else if (x->parent->color == RB_BLACK)
+                rb_paint_stext_l(x->parent, "Black parent -> done", " ");
+                delay(1000);
+        }
+
+        else
+        {
+            if (y)
+            {
+                if (y == y->parent->right)
+                {
+                    rb_paint_stext_r(y,
+                               "Black uncle -> check",
+                               "way from grandfather");
+                    delay(1000);
+                }
+                else
+                    {
+                        rb_paint_stext_l(y,
+                               "Black uncle -> check",
+                               "way from grandfather");
+                        delay(1000);
+                    }
+            }
+            else
+            {
+                if (x->parent == x->parent->parent->right)
+                    rb_paint_stext_l(x->parent,
+                               "Uncle - nil=black -> check",
+                               "way from grandfather");
+                else
+                    rb_paint_stext_r(x->parent,
+                               "Uncle - nil=black -> check",
+                               "way from grandfather");
+            }
+            delay(5000);
+
+            rb_paint(t, root_pos);
+
+
+            rb_paint_select(x->parent->parent, GREEN);
+            rb_paint_select(x->parent, GREEN);
+            rb_paint_select(x, CYAN);
+
+            if (x->parent == x->parent->parent->left && x == x->parent->right)
+            {
+                rb_paint_stext_l(x,
+                           "x - right child, its parent - left",
+                           "-> left rotation around parent of x");
+
+                x = x->parent;
+
+
+                rb_paint_select_rotate_l(x);
+                rb_rotate_left(t, x);
+
+                rb_paint(t, root_pos);
+
+                rb_paint_select(x->parent->parent, GREEN);
+                rb_paint_select(x->parent, GREEN);
+                rb_paint_select(x, CYAN);
+            }
+
+            else if (x->parent == x->parent->parent->right && x == x->parent->left)
+            {
+
+                rb_paint_stext_r(x,
+                           "x - left child, its parent - right",
+                           "-> right rotation around parent of x");
+
+                x = x->parent;
+
+                rb_paint_select_rotate_r(x);
+                rb_rotate_right(t, x);
+
+                rb_paint(t, root_pos);
+
+                rb_paint_select(x->parent->parent, GREEN);
+                rb_paint_select(x->parent, GREEN);
+                rb_paint_select(x, CYAN);
+            }
+
+            if (x == x->parent->right)
+                rb_paint_stext_l(x,
+                           "one way exists -> repaint",
+                           "parent into black, grandfather into red");
+            else
+                rb_paint_stext_r(x,
+                           "one way exists -> repaint",
+                           "parent into black, grandfather into red");
+
+            x->parent->color = RB_BLACK;
+
+            rb_paint_select_repaint(x->parent, BLACK);
+            x->parent->parent->color = RB_RED;
+            rb_paint_select_repaint(x->parent->parent, LIGHTRED);
+
+            rb_paint(t, root_pos);
+
+            rb_paint_select(x, CYAN);
+
+            if (x == x->parent->left)
+            {
+                rb_paint_select(x->parent->parent, GREEN);
+                rb_paint_select(x->parent, GREEN);
+
+                rb_paint_stext_l(x->parent,
+                           "way direction - left -> right",
+                           "rotation around grandfather");
+
+
+                rb_paint_select_rotate_r(x->parent->parent);
+                rb_rotate_right(t, x->parent->parent);
+                delay(5000);
+            }
+            else
+            {
+                rb_paint_select(x->parent->parent, GREEN);
+                rb_paint_select(x->parent, GREEN);
+
+                rb_paint_stext_r(x->parent,
+                           "way direction - right -> left",
+                           "rotation around grandfather");
+                rb_paint_select_rotate_l(x->parent->parent);
+                rb_rotate_left(t, x->parent->parent);
+                delay(5000);
+            }
+        }
+    }
+    rb_paint(t, root_pos);
+    t->root->color = RB_BLACK;
+    delay(5000);
+    return 0;
+}
+
+
 

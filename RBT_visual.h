@@ -12,9 +12,9 @@ void rb_paint_select(const rbnode *n, int color);
 //Select node an its parent
 void rb_paint_select_insert(const rbnode *n);
 //Arrow to the left
-void rb_select_rotate_l(const rbnode *n);
+void rb_paint_select_rotate_l(const rbnode *n);
 //Arrow to the right
-void rb_select_rotate_r(const rbnode *n);
+void rb_paint_select_rotate_r(const rbnode *n);
 //Double black
 void rb_paint_double_black(const rbnode *n);
 //Highlight path to min
@@ -26,7 +26,15 @@ void rb_paint_select_repaint(const rbnode *n, int new_color);
 //Copy key from one node to another on paint and draw arrow from old to new, highlight new node
 void rb_paint_select_copy(const rbnode *n_old, const rbnode *n_new);
 //Print text left to node
-void rb_paint_stext_l(const rbnode *n, const char *str);
+void rb_paint_stext_l(const rbnode *n, const char *str1, const char *str2);
 //Print text right to node
-void rb_paint_text_r(const rbnode *n, const char *str);
+void rb_paint_stext_r(const rbnode *n, const char *str, const char *str2);
+
+//Really used functions (finally!)
+//Draw and add new node to RBT without fix
+rbnode *rb_paint_bst_insert(rbt *t, key_t key);
+//Draw and add new node to RBT correctly
+int rb_paint_insert(rbt *t, key_t key, place root_pos);
+//Delete node by key
+/*int rb_paint_delete(rbt *t, key_t key, place root_pos);*/
 #endif // RBT_VISUAL_H_INCLUDED
