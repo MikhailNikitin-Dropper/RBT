@@ -13,7 +13,7 @@
 	<stdio.h>
 	"RBT_back.h"
 
-1685625044 source:c:\c\rbt_project\main.c
+1685656847 source:c:\c\rbt_project\main.c
 	<stdio.h>
 	<stdlib.h>
 	<graphics.h>
@@ -27,7 +27,7 @@
 	"RBT_back.h"
 	<stdio.h>
 
-1685627095 source:c:\c\rbt_project\rbt_visual.c
+1685656776 source:c:\c\rbt_project\rbt_visual.c
 	"RBT_visual.h"
 	"RBT_back.h"
 	"RBT_info.h"

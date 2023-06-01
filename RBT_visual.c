@@ -110,7 +110,7 @@ void rb_paint_select_rotate_r(const rbnode *n)
 
 }
 
-void rb_select_double_black(rbnode *n)
+void rb_paint_double_black(const rbnode *n)
 {
     setcolor(WHITE);
     setlinestyle(SOLID_LINE, 0, THICK_WIDTH);
@@ -208,7 +208,7 @@ void rb_paint_select_copy(const rbnode *n_old, const rbnode *n_new)
 void rb_paint_stext_l(const rbnode *n, const char *str1, const char *str2)
 {
     setcolor(BLACK);
-    settextstyle(0, 0, SIZE_Y/3);
+    settextstyle(0, 0, SIZE_Y/4);
     setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
     int width1 = textwidth(str1);
     int width2 = textwidth(str2);
@@ -222,10 +222,10 @@ void rb_paint_stext_l(const rbnode *n, const char *str1, const char *str2)
 void rb_paint_stext_r(const rbnode *n, const char *str1, const char *str2)
 {
     setcolor(BLACK);
-    settextstyle(0, 0, SIZE_Y/3);
+    settextstyle(0, 0, SIZE_Y/4);
     setlinestyle(SOLID_LINE, 0, NORM_WIDTH);
     if (str2)
-         outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y+SIZE_Y/3+1, str2);
+         outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y+SIZE_Y+1, str2);
     outtextxy(n->pos.x + 2*SIZE_X+1, n->pos.y, str1);
 
 }
@@ -337,14 +337,16 @@ int rb_paint_insert(rbt *t, key_t key, place root_pos)
             {
                 rb_paint_stext_l(x,
                            "Black root -> repaint to black",
-                           NULL);
+                           " ");
                 rb_paint_select_repaint(x, BLACK);
                 delay(1000);
             }
 
             else if (x->parent->color == RB_BLACK)
+            {
                 rb_paint_stext_l(x->parent, "Black parent -> done", " ");
                 delay(1000);
+            }
         }
 
         else
@@ -377,7 +379,7 @@ int rb_paint_insert(rbt *t, key_t key, place root_pos)
                                "Uncle - nil=black -> check",
                                "way from grandfather");
             }
-            delay(5000);
+            delay(1000);
 
             rb_paint(t, root_pos);
 
@@ -455,7 +457,7 @@ int rb_paint_insert(rbt *t, key_t key, place root_pos)
 
                 rb_paint_select_rotate_r(x->parent->parent);
                 rb_rotate_right(t, x->parent->parent);
-                delay(5000);
+                delay(1000);
             }
             else
             {
@@ -467,15 +469,559 @@ int rb_paint_insert(rbt *t, key_t key, place root_pos)
                            "rotation around grandfather");
                 rb_paint_select_rotate_l(x->parent->parent);
                 rb_rotate_left(t, x->parent->parent);
-                delay(5000);
+                delay(1000);
             }
         }
     }
-    rb_paint(t, root_pos);
     t->root->color = RB_BLACK;
-    delay(5000);
+    rb_paint(t, root_pos);
+    delay(1000);
     return 0;
 }
 
 
 
+int rb_paint_delete(rbt *t, key_t key, place root_pos)
+{
+    rbnode *x, *y, *z = t->root, *n = NULL;
+
+    while (z && z->key.data != key.data)
+    {
+        rb_paint_select_insert(z);
+
+        if (key.data < z->key.data)
+        {
+            if (!(z->left))
+            {
+                rb_paint_stext_l(z,"Element not found", " ");
+                return -1;
+            }
+            z = z->left;
+        }
+        else
+        {
+            if (!(z->right))
+            {
+                rb_paint_stext_r(z,"Element not found", NULL);
+                return -1;
+            }
+            z = z->right;
+        }
+    }
+
+    rb_paint_select_insert(z);
+
+    if (!z->left || !z->right)
+    {
+
+        if (z->left || z->right)
+            rb_paint_stext_l(z,
+                       "have only one subtree ->",
+                       "this is deleted node");
+        else
+            rb_paint_stext_l(z,
+                       "haven't got any subtree ->",
+                       "this is deleted node");
+        y = z;
+    }
+    else
+    {
+        rb_paint_stext_l(z,
+                   "both subtree exists -> find min",
+                   "element in right subtree");
+        rbt r;
+        r.root = z->right;
+
+        y = rb_paint_min(&r);
+        rb_paint_stext_l(y,
+                   "this is deleted node ->",
+                   "move data to first node");
+        rb_paint_select_copy(y, z);
+        z->key.data = y->key.data;
+    }
+
+    if (y == t->root)
+    {
+        rb_paint_stext_r(y,
+                   "deleted root -> tree",
+                   "is empty");
+        free(y);
+        t->root = NULL;
+        return 0;
+    }
+
+    x = y->left ? y->left : y->right;
+
+    if (!x)
+    {
+        n = malloc(sizeof(rbnode));
+        n->color = RB_NIL;
+        n->left = NULL;
+        n->right = NULL;
+        x = n;
+    }
+
+    x->parent = y->parent;
+
+    if (!y->parent)
+        t->root = x;
+    else
+    {
+
+        if (y == y->parent->left)
+            y->parent->left = x;
+        else
+            y->parent->right = x;
+    }
+
+    if (y->color == RB_BLACK)
+    {
+        rb_paint_stext_r(y,
+                   "«change remove node to its",
+                   "child; child is current");
+
+        if (x->color == RB_NIL)
+        {
+            rb_paint_stext_l(y, "child - nil", " ");
+            delay(1000);
+        }
+        rb_paint(t, root_pos);
+
+        while (x != t->root && x->color != RB_RED)
+        {
+            int l = 0;
+            rbnode *w = x == x->parent->left ? x->parent->right
+                                              : x->parent->left;
+            if (x == x->parent->left)
+                rb_paint_stext_l(x,
+                           "x black -> its double black;",
+                           "define its brother color");
+            else
+                rb_paint_stext_r(x,
+                           "x black -> its double black;",
+                           "define its brother color");
+
+            rb_paint_double_black(x);
+            delay(1000);
+
+            if (w->color == RB_RED)
+            {
+                if (w == w->parent->left)
+                    rb_paint_stext_l(w,
+                               "brother red -> repaint it",
+                               "to black, parent to red ");
+                else
+                    rb_paint_stext_r(w,
+                               "brother red -> repaint it",
+                               "to black, parent to red ");
+
+                w->color = RB_BLACK;
+
+                rb_paint_select_repaint(w, BLACK);
+
+                x->parent->color = RB_RED;
+                rb_paint_select_repaint(x->parent, LIGHTRED);
+
+                if (x == x->parent->left)
+                {
+                    rb_paint_stext_l(x,
+                              "x - left child -> left",
+                              "rotation around parent");
+                    rb_paint_select_rotate_l(x->parent);
+                    rb_rotate_left(t, x->parent);
+                    w = x->parent->right;
+                }
+                else
+                {
+
+                    rb_paint_stext_r(x,
+                              "x - left child -> right",
+                              "rotation around parent");
+                    rb_paint_select_rotate_r(x->parent);
+                    rb_rotate_right(t, x->parent);
+                    w = x->parent->left;
+                }
+
+                rb_paint(t, root_pos);
+
+                rb_paint_double_black(x);
+
+                ++l;
+            }
+
+            if (l)
+            {
+                if (w == w->parent->left)
+                    rb_paint_stext_l(w,
+                               "now brother black ->",
+                               "define nephew color ");
+                else
+                    rb_paint_stext_r(w,
+                               "now brother black ->",
+                               "define nephew color ");
+            }
+            else
+            {
+                if (w == w->parent->right)
+                    rb_paint_stext_l(w,
+                               "now brother black ->",
+                               "define nephew color ");
+                else
+                    rb_paint_stext_r(w,
+                               "now brother black ->",
+                               "define nephew color ");
+            }
+
+            if ((!w->left || w->left->color == RB_BLACK) &&
+                (!w->right || w->right->color == RB_BLACK))
+            {
+                if (w == w->parent->right)
+                {
+                    if (w->right)
+                    {
+                        if (w->left)
+                        {
+                            rb_paint_select(w->left, GREEN);
+                            rb_paint_stext_r(w->right,
+                                       "both nephew black ->",
+                                       "repaint brother to red");
+                            delay(1000);
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            rb_paint_stext_r(w,
+                                      "double black transfer to parent", " ");
+                            delay(1000);
+                        }
+                        else
+                        {
+                            rb_paint_stext_r(w->right,
+                                       "both nephew black -> (left",
+                                       "- nil = black) ->");
+                            delay(1000);
+                            rb_paint_stext_r(w->right,
+                                      "repaint brother to red,",
+                                      "double black transfer to parent");
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            delay(1000);
+                        }
+                    }
+                    else
+                    {
+                        if (w->left)
+                        {
+                            rb_paint_stext_l(w->left,
+                                       "both nephew black -> (right",
+                                       "- nil = black) ->");
+                            delay(1000);
+                            rb_paint_stext_l(w->left,
+                                      "repaint brother to red,",
+                                      "double black transfer to parent");
+
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            delay(1000);
+                        }
+                        else
+                        {
+                            rb_paint_stext_r(w,
+                                      "both nephew nil = black",
+                                      "-> repaint brother to red");
+                            delay(1000);
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            rb_paint_stext_r(w,
+                                      "double black transfer to parent", " ");
+                            delay(1000);
+                        }
+                    }
+                }
+                else
+                {
+                    if (w->right)
+                    {
+                        if (w->left)
+                        {
+                            rb_paint_select(w->right, GREEN);
+                            rb_paint_stext_l(w->left,
+                                       "both nephew black",
+                                      "-> repaint brother to red");
+                            delay(1000);
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            rb_paint_stext_l(w->left,
+                                      "double black transfer to parent", " ");
+                            delay(1000);
+                        }
+                        else
+                        {
+                            rb_paint_stext_r(w->right,
+                                       "both nephew black -> (left",
+                                       "- nil = black) ->");
+                            delay(1000);
+                            rb_paint_stext_r(w->right,
+                                      "repaint brother to red,",
+                                      "double black transfer to parent");
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            delay(1000);
+                        }
+                    }
+                    else
+                    {
+                        if (w->left)
+                        {
+                            rb_paint_stext_l(w->left,
+                                       "both nephew black -> (right",
+                                       "- nil = black) ->");
+                            delay(1000);
+                            rb_paint_stext_l(w->left,
+                                      "repaint brother to red,",
+                                      "double black transfer to parent");
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            delay(1000);
+                        }
+                        else
+                        {
+                            rb_paint_stext_l(w,
+                                      "both nephew nil = black",
+                                      "-> repaint brother to red");
+                            delay(1000);
+                            rb_paint_select_repaint(w, LIGHTRED);
+                            rb_paint_stext_l(w,
+                                      "double black transfer to parent", " ");
+                            delay(1000);
+                        }
+                    }
+                }
+
+                w->color = RB_RED;
+                if (x->parent->color == RB_RED)
+                {
+                    rb_paint(t, root_pos);
+                    rb_paint_select(x, GREEN);
+
+                    rb_paint_double_black(x->parent);
+
+                    rb_paint_stext_r(x->parent,
+                              "parent red ->",
+                              "repaint to black; done");
+                    x->parent->color = RB_BLACK;
+                    rb_paint_select_repaint(x->parent, BLACK);
+                    x = t->root;
+                }
+                else
+                {
+                    if (x->color == RB_NIL)
+                    {
+                        if (x == x->parent->left)
+                            x->parent->left = NULL;
+                        else
+                            x->parent->right = NULL;
+                    }
+
+                    x = x->parent;
+                    rb_paint(t, root_pos);
+                    rb_paint_select(x, GREEN);
+                    if (!x->parent)
+                    {
+                        rb_paint_double_black(x);
+                        rb_paint_stext_r(x,
+                                  "root double black ->",
+                                  "repaint to black; done");
+                    }
+                }
+            }
+
+
+            else
+            {
+                int k = 0;
+
+                if ((x == x->parent->left && (!w->right || w->right->color == RB_BLACK)) ||
+                    (x == x->parent->right && (!w->left || w->left->color == RB_BLACK)))
+                {
+                    w->color = RB_RED;
+
+                    if (x == x->parent->left)
+                    {
+                        if (w->right)
+                        {
+                            rb_paint_stext_r(w->right,
+                                       "closest nephew red ,",
+                                       "opposite - black ->");
+                            delay(1000);
+                            rb_paint_stext_r(w->right,
+                                      "repaint brother in red,",
+                                      "closest nephew to black");
+                        }
+                        else
+                        {
+                            rb_paint_stext_r(w,
+                                      "closest nephew red ,",
+                                      "opposite -  nil=black ->");
+                            delay(1000);
+                            rb_paint_stext_r(w,
+                                      "repaint brother in red,",
+                                      "closest nephew to black");
+                        }
+
+                        rb_paint_select_repaint(w, LIGHTRED);
+
+                        w->left->color = RB_BLACK;
+
+                        rb_paint_select_repaint(w->left, BLACK);
+
+                        rb_paint_stext_l(x,
+                                  "x - left child -> right",
+                                  "rotation around brother");
+
+                        rb_paint_select_rotate_r(w);
+                        rb_rotate_right(t, w);
+
+                        w = x->parent->right;
+                    }
+
+                    else
+                    {
+                        if (w->left)
+                        {
+                            rb_paint_stext_l(w->left,
+                                       "closest nephew red ,",
+                                       "opposite - black ->");
+                            delay(1000);
+                            rb_paint_stext_l(w->left,
+                                      "repaint brother in red,",
+                                      "closest nephew to black");
+                        }
+                        else
+                        {
+                            rb_paint_stext_l(w,
+                                      "closest nephew red ,",
+                                      "opposite -  nil=black ->");
+                            delay(1000);
+                            rb_paint_stext_l(w,
+                                      "repaint brother in red,",
+                                      "closest nephew to black");
+                        }
+
+                        rb_paint_select_repaint(w, LIGHTRED);
+                        w->right->color = RB_BLACK;
+                        rb_paint_select_repaint(w->right, BLACK);
+
+                        rb_paint_stext_r(x,
+                                  "x - right child -> left",
+                                  "rotation around brother");
+
+                        rb_paint_select_rotate_l(w);
+                        rb_rotate_left(t, w);
+
+                        w = x->parent->left;
+                    }
+
+                    rb_paint(t, root_pos);
+                    rb_paint_double_black(x);
+                    ++k;
+                }
+
+
+                if (x == x->parent->left)
+                {
+                    rb_paint_stext_r(w->right,
+                               "opposite nephew red",
+                               "don't care about clousest ->");
+                    delay(1000);
+                    rb_paint_stext_r(w->right,
+                              "repaint brother into parent color,",
+                              "parent and nephew - to black");
+
+                    rb_paint_select_repaint(w, x->parent->color == RB_RED ? LIGHTRED : BLACK);
+
+                    w->color = x->parent->color;
+                    x->parent->color = RB_BLACK;
+                    rb_paint_select_repaint(x->parent, BLACK);
+                    w->right->color = RB_BLACK;
+                    rb_paint_select_repaint(w->right, BLACK);
+
+                    rb_paint_stext_l(x,
+                              "x - left child -> left rotation",
+                              "around parent; done");
+
+                    rb_paint_select_rotate_l(x->parent);
+                    rb_rotate_left(t, x->parent);
+                }
+                else
+                {
+                    rb_paint_stext_l(w->left,
+                               "opposite nephew red",
+                               "don't care about clousest ->");
+                    delay(1000);
+                    rb_paint_stext_l(w->left,
+                              "repaint brother into parent color,",
+                              "parent and nephew - to black");
+
+
+                    rb_paint_select_repaint(w, x->parent->color == RB_RED ? LIGHTRED : BLACK);
+                    w->color = x->parent->color;
+
+                    x->parent->color = RB_BLACK;
+                    rb_paint_select_repaint(x->parent, BLACK);
+
+                    w->left->color = RB_BLACK;
+                    rb_paint_select_repaint(w->left, BLACK);
+                    rb_paint_stext_r(x,
+                                  "x - right child -> left",
+                                  "rotation around brother");
+
+                    rb_paint_select_rotate_r(x->parent);
+                    rb_rotate_right(t, x->parent);
+                }
+
+                x = t->root;
+            }
+        }
+
+
+        if (x->color == RB_RED)
+        {
+            rb_paint(t, root_pos);
+            rb_paint_select(x, GREEN);
+            delay(1000);
+            if (x == x->parent->left)
+                rb_paint_stext_l(x,
+                           "x - red -> repaint",
+                           "to black; done");
+            else
+                rb_paint_stext_r(x,
+                           "x - red -> repaint",
+                           "to black; done");
+            rb_paint_select_repaint(x, BLACK);
+        }
+
+        x->color = RB_BLACK;
+    }
+    else
+    {
+        rb_paint_stext_r(y,
+                   "change removing node to its",
+                   "child; node is red -> done");
+        if (!y->left && !y->right)
+        {
+            rb_paint_stext_r(y, "child - nil", " ");
+            delay(1000);
+        }
+    }
+
+    free(y);
+
+    if (n)
+    {
+        if (n == t->root)
+            t->root = NULL;
+        else
+        {
+            if (n == n->parent->left)
+                n->parent->left = NULL;
+            if (n == n->parent->right)
+                n->parent->right = NULL;
+        }
+        free(n);
+    }
+
+    rb_paint(t, root_pos);
+    return 0;
+}
